@@ -1,0 +1,324 @@
+{
+	"info": {
+		"_postman_id": "42cdc832-fb12-4b70-9986-7b1c7861a1e1",
+		"name": "Add Reg Key to existing Pool and License Device",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Token Request",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();\r",
+							"\r",
+							"pm.environment.set(\"Token\", jsonData.token.token)\r",
+							"\r",
+							"\r",
+							"pm.test(\"Token retrieved\", function () {\r",
+							"pm.response.to.have.status(200);\r",
+							"});\r",
+							"            \r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"username\":\"{{USERNAME}}\",\r\n  \"password\":\"{{PASSWORD}}\"\r\n}"
+				},
+				"url": {
+					"raw": "https://{{BIGIQ_MGMT}}/mgmt/shared/authn/login",
+					"protocol": "https",
+					"host": [
+						"{{BIGIQ_MGMT}}"
+					],
+					"path": [
+						"mgmt",
+						"shared",
+						"authn",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retreive Pool ID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();\r",
+							"\r",
+							"pm.environment.set(\"POOL_ID\", jsonData.items[0].id)\r",
+							"pm.environment.set(\"POOL_NAME\", jsonData.items[0].name)\r",
+							"\r",
+							"pm.test(\"POOL ID retrieved\", function () {\r",
+							"pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"POOL NAME retrieved\", function () {\r",
+							"pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-F5-Auth-Token",
+						"value": "{{Token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://{{BIGIQ_MGMT}}/mgmt/cm/device/licensing/pool/regkey/licenses",
+					"protocol": "https",
+					"host": [
+						"{{BIGIQ_MGMT}}"
+					],
+					"path": [
+						"mgmt",
+						"cm",
+						"device",
+						"licensing",
+						"pool",
+						"regkey",
+						"licenses"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Key to Reg Pool",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-F5-Auth-Token",
+						"value": "{{Token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"regKey\": \"{{REGKEY}}\",\r\n  \"name\": \"{{REGKEY_NAME}}\",\r\n  \"status\": \"ACTIVATING_AUTOMATIC\"\r\n}"
+				},
+				"url": {
+					"raw": "https://{{BIGIQ_MGMT}}/mgmt/cm/device/licensing/pool/regkey/licenses/{{POOL_ID}}/offerings",
+					"protocol": "https",
+					"host": [
+						"{{BIGIQ_MGMT}}"
+					],
+					"path": [
+						"mgmt",
+						"cm",
+						"device",
+						"licensing",
+						"pool",
+						"regkey",
+						"licenses",
+						"{{POOL_ID}}",
+						"offerings"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Accept EULA",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "X-F5-Auth-Token",
+						"value": "{{Token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\"status\": \"ACTIVATING_AUTOMATIC_EULA_ACCEPTED\",\r\n\"eulaText\": \"END USER LICENSE AGREEMENT\\n\\nDOC-0355-16\\n\\nIMPORTANT \\\" READ BEFORE INSTALLING OR OPERATING THIS PRODUCT\\n\\nYOU AGREE TO BE BOUND BY THE TERMS OF THIS LICENSE BY INSTALLING,\\nHAVING INSTALLED, COPYING, OR OTHERWISE USING THE SOFTWARE.  IF YOU\\nDO NOT AGREE, DO NOT INSTALL OR USE THE SOFTWARE.\\n\\nThis End User License Agreement (\\\"License\\\") applies to the software\\nproduct(s) (\\\"Software\\\") you have licensed from us whether on\\na stand-alone basis or as part of any hardware (\\\"Hardware\\\") you\\npurchase from us, (the Hardware and Software together, the \\\"Product\\\").\\nThis License is a legal agreement between us and the single entity\\nthat has licensed the Software from us (\\\"you\\\"). All references to\\n\\\"F5,\\\" \\\"we\\\" or \\\"us\\\" in this License will be deemed to be a reference\\nto the applicable F5 entity as follows: (a) if your primary place of\\nbusiness is located in the European Economic Area, the Middle East\\nor Africa (\\\"EMEA\\\"), the F5 entity is F5 Networks Ltd.; (b) if your\\nprimary place of business is located in the Asia- Pacific region\\n(\\\"APAC\\\"), the F5 entity is F5 Networks Singapore Pte Ltd; and (c)\\nif your primary place of business is located in a region outside of\\nEMEA or APAC, the F5 entity is F5 Networks, Inc.\\n\\n1.  Grant of Rights.\\n\\n(a)  License. Subject to your compliance with the terms of this\\nLicense, we grant to you a limited, non- exclusive, non-transferable,\\nnon-sublicensable license to install, use, access, display, and run\\nthe Software in object code form for your internal business purposes\\nduring the Term.\\n\\n(b) Documentation. You may use the user manuals, technical manuals,\\nand any other materials provided by us, in printed or electronic\\nform, that describe the installation, operation, use or technical\\nspecifications of the Software (\\\"Documentation\\\") solely in support\\nof the licensed use of the Software in accordance with this License.\\n\\n(c) Reservation of Rights. Other than as specifically described herein,\\nwe retain all right, title and interest in our trademarks, patents,\\ncopyrights, trade secrets or other intellectual property rights not\\ngranted herein.\\n\\n2.  Term. The Software is licensed to you on either a subscription\\nor perpetual basis in accordance with the terms of this Section 2\\n(\\\"Term\\\"):\\n\\n(a)  Nginx Software Term. Unless otherwise set forth in an agreement\\nbetween us and you, NGINX Software is licensed to you for the\\nsubscription term set forth in the applicable purchase order or\\nquote (\\\"Initial Subscription Term\\\"). Upon expiration of your Initial\\nSubscription Term, your subscription will automatically renew for\\nadditional one-year terms unless either party provides written notice\\nof nonrenewal at least 30 days prior to the end of the then-current\\nterm, or unless earlier terminated in accordance with Section 11. NGINX\\nSoftware is not licensed on a perpetual basis.\\n\\n(b)  F5 Software Term. F5 Software is licensed to you on either a\\nperpetual or subscription basis, and with respect to the latter,\\nas further set forth in the Program Terms or an addendum hereto.\\n\\n(c)  Program Terms. Subscriptions for F5 Software and NGINX Software\\nmay be licensed subject to specific program terms identified at\\nhttps://www.f5.com/pdf/customer-support/program-terms.pdf (\\\"Program\\nTerms\\\").\\n\\n3.  Restrictions.\\n\\n(a) Compliance with Sales Documentation. Your use of the Software must\\ncomply with this License, applicable Documentation, purchase order,\\nquote and the license file for such Software (collectively, \\\"Sales\\nDocumentation\\\"), including, but not limited to, any restrictions on the\\nnumber of protected applications, number or type of licensed devices,\\nnumber of authorized copies or instances, number of users, bandwidth,\\nnon-production use, database or location restrictions. We reserve\\nthe right to audit your use of the Software (or authorize third party\\nauditors to conduct such an audit on our behalf) and to disable any\\napplication or functionality that has not been specifically licensed,\\nin addition to any other rights and remedies available to us.\\n\\n(b) Versions. Your use of the Software under this License may\\nbe limited to certain versions, as set forth in the applicable\\nSales Documentation (for example, a \\\"version plus\\\" license may be\\nlimited to certain number of major updates). To the extent your\\nSales Documentation contains such limitations, your use of versions\\nor releases of the Software that are not contemplated in your Sales\\nDocumentation is prohibited and shall be considered a material breach\\nof this License.\\n\\n(c) Nontransferability. Unless otherwise set forth in an agreement\\nbetween you and us, Software that you obtain as part of the Product\\nis not transferable to other Hardware, third-party hardware, or any\\nvirtualized environment.\\n\\n(d) Licensed Features. For Software provided in stand-alone form\\n(for example, a virtual machine image), each instance of the Software\\nrequires a valid license key issued to you by F5 or an authorized\\nsub-licensor and you may only use the Software for the duration \\nthat the license key permits. F5 employs mechanisms in the Software\\nin order to ensure that you are only able to access the Software\\nfeatures that you have licensed.\\n\\n(e) Other Restrictions. Except as otherwise expressly permitted in\\nthis License, you will not yourself, or through any parent, subsidiary,\\naffiliate, agent or other third party:\\n\\n(1) copy (except to make one archival copy for backup and disaster\\nrecover purposes), modify or create derivative works of the Software\\nor Documentation;\\n\\n(2) sell, sub-license, rent, service bureau, grant usage rights\\nor transfer the Software, any data incorporated into the Software\\n(\\\"Data\\\") or any associated Documentation to any third-party not\\nauthorized by us;\\n\\n(3) disassemble, reverse compile or reverse engineer the Software or\\nany Data or encourage others to do so except as required by law for\\ninteroperability purposes, and then only after you have given us an\\nopportunity to provide information or software necessary to resolve\\nsuch interoperability issues;\\n\\n(4) defeat, circumvent or disable any reporting mechanism, copy\\nprotection mechanism or mechanism in the Software used to limit\\nlicense duration or access to non-licensed functionality or capacity.\\n\\n\\tViolation of any of the restrictions contained in this Section\\n\\t3(e) is a material breach of this\\nLicense.\\n\\n(f) Software Specific Restrictions.\\n\\n(1)  Non-Production Use Software.  If you purchase a Product or\\nlicense Software designated as \\\"non-production,\\\" \\\"non-commercial,\\\"\\n\\\"lab\\\" or \\\"development\\\" in the applicable Sales Documentation for such\\nProduct or Software (\\\"Non-Production Software\\\"), you may use the\\nNon-Production Software to conduct testing and development in your\\nnon-production environment only and may not manage or protect data\\ntraffic or applications in the ordinary course of your business. Any\\nuse of Non-Production Software in violation of the preceding sentence\\nis a material breach of this License.\\n\\n(2)  Evaluation Software.  If the Software is \\\"Evaluation Software,\\\"\\nnotwithstanding any other terms to the contrary in this License,\\nyou may use the Software only for your internal demonstration,\\ntest or evaluation purposes and not in a production environment.\\nNOTWITHSTANDING ANY TERMS TO THE CONTRARY IN THIS LICENSE, WE DISCLAIM\\nALL WARRANTIES, EXPRESS OR IMPLIED, FOR EVALUATION SOFTWARE AND IT IS\\nPROVIDED ON AN \\\"AS IS\\\" BASIS. Evaluation software has a non-perpetual\\nduration-limited license that will \\\"time-out\\\" and disable the software \\nupon expiration of the evaluation period.  You will not attempt to defeat\\nor circumvent any duration mechanism for Evaluation Software and you will\\nnot use any Evaluation Software beyond the prescribed license duration.\\n\\n(3)  Software Hosted in a Public Cloud.  If you use the Software in\\na public cloud environment, you may only use the Software in object\\ncode form in the cloud provider\\\"s (\\\"Cloud Provider\\\") environment.\\nIn accordance with Section 3(e), you may not copy any portion of the\\nSoftware out of the Cloud Provider environment.  Each instance of\\nthe Software running in the Cloud Provider\\\"s environment requires its\\nown license key when you are using a bring-your-own- license offering\\nfrom the Cloud Provider.  If you are using a utility offering (e.g.,\\nhourly) from the Cloud Provider, each instance is licensed and paid for\\nseparately within the Cloud Provider\\\"s infrastructure.\\tIN ADDITION TO\\nTHE DISCLAIMERS SET FORTH IN SECTION 8(d) BELOW, AND NOTWITHSTANDING\\nANY TERMS TO THE CONTRARY IN THIS LICENSE OR ANY REPRESENTATIONS OR\\nWARRANTIES OF THE APPLICABLE CLOUD OR SIMILAR ENVIRONMENT, SOFTWARE\\nPROVIDED BY A CLOUD PROVIDER AND NOT OBTAINED FROM F5 IS PROVIDED\\n\\\"AS IS\\\" AND POSSIBLY WITH FAULTS.\\n\\n4.  Third Party Materials.\\n\\n(a)  Open Source Components. Certain portions of the Software contain\\nopen source software (\\\"Open Source Components\\\") that are licensed\\nunder the terms of the applicable open source licenses (\\\"Open Source\\nLicenses\\\"). You are bound by and shall comply with the Open Source\\nLicenses. A listing of the Open Source Components, and links to the\\nOpen Source Licenses, can be found in the Documentation. You may\\nreference the applicable Product\\\"s Open Source Notices and Software\\nAcknowledgments document at http://askf5.com. To the extent the\\nterms of the Open Source Licenses require us to make available to\\nyou the corresponding source code and/or modifications (the \\\"Open\\nSource Code\\\"), you may obtain a copy of the applicable Open Source\\nCode from its current location at https://downloads.f5.com, or by\\nsending us a written request with your name and address to the notice\\naddress specified in Section 13(b).  All requests should identify:\\nthe Open Source Code that you are requesting, the applicable Software\\n(and any available version information) that you have licensed from us\\nin connection with the requested Open Source Code, your email contact\\ninformation, and the postal address for delivery of the requested Open\\nSource Code to you. This offer to obtain a copy of the Open Source\\nCode is valid for three (3) years from the date you have licensed\\nthe Software.\\n\\n(b) Restricted Third Party Software. Certain portions of the Software\\ninclude third-party software modules, and are subject to additional\\nlimitations set forth in this Section 4(b) imposed by those licensors\\n(\\\"Restricted Third-Party Software\\\"). Certain portions of the Software\\nmay include geographical or other data (\\\"Geographical Data\\\"). You\\nagree that you will only use such Restricted Third-Party Software or\\nGeographical Data in conjunction with the Product and not as standalone\\nsoftware. You will not (A) copy the Restricted Third-Party Software\\nor Geographical Data onto any public or distributed network; (B) use\\nthe Restricted Third-Party Software or Geographical Data separately\\nto operate in or as a time-sharing, outsourcing, service bureau,\\napplication service provider or managed service provider environment;\\n(C) use the Restricted Third-Party Software or Geographical Data as\\na general server, as a standalone application or with applications\\nother than the Software under this license; (D) change any proprietary\\nrights notices which appear in the Restricted Third-Party Software or\\nGeographical Data; or (E) modify the Restricted Third-Party Software\\nor Geographical Data.\\n\\n(c)  ModSecurity Software. In connection with your Nginx Software\\nlicense, you may have the option to license ModSecurity software\\n(\\\"ModSecurity Module\\\") as an optional add-on. The ModSecurity\\nModule is not \\\"Software\\\" as such term is defined herein. If\\napplicable, the ModSecurity Module will be provided by us with\\nthe applicable Nginx Software; provided that the licensing\\nof the ModSecurity Module is subject to the terms set forth at\\nhttp://www.apache.org/licenses/LICENSE- 2.0 and is not subject to\\nthe terms of this License. Therefore, we will have no liability\\nwith respect to the licensing and use of the ModSecurity Module,\\nincluding, without limitation, any warranty or indemnification\\nobligations. Notwithstanding the foregoing, we will provide support for\\nthe ModSecurity Module under the terms of this License. Notwithstanding\\nany contrary provision in this License, support for the ModSecurity\\nsoftware will be provided as described in Section 12(a).\\n\\n5.  Collection and Use of Information.\\n\\n(a)  Product Information. You consent and agree to the collection\\nand use of certain information about your Product, including, but\\nnot limited to, Hardware serial number, appliance part number, disk\\nconfiguration, memory amount, as well as periodic updates for software,\\ndatabases, etc.  You further consent and agree that the Product\\nmay collect, use, transmit to us, process and maintain information\\nrelated to the Product for purposes of providing the Software and any\\nfeatures therein. Information collected by the Product and transmitted\\nto us may also include technical or diagnostic information related to\\nyour use that may be used by us to support, improve and enhance our\\nproducts and services. You may opt out of the collection and use of\\nsuch information by configuring the Product to disable these features.\\n\\n(b) Data Collection and Sharing.  In the event that we have\\naccess to your end users\\\" personal information, we will use it\\nin accordance with the applicable Privacy Policy (available at\\nhttps://www.f5.com/company/policies/privacy-notice for F5 Software\\nand https://www.nginx.com/privacy-policy for Nginx Software).\\n\\n6.  Export Control.  Our standard Products incorporate cryptographic\\nsoftware. You agree to comply with the Export Controls Reform Act\\nof 2018, and all regulations promulgated under the Act, all economic\\nsanctions issued or administered by the Office of Foreign Asset Control\\nof the U.S. Department of Treasury, and all other U.S. government\\nregulations relating to the export of technical data and equipment\\nand products produced therefrom which are applicable to you. You\\nfurther agree not to disclose or transmit to us any information that\\nrequires that access to such information be limited to U.S. Nationals\\nor personnel based in a certain country or region. In countries\\nother than the U.S., you agree to comply with the local regulations\\nregarding importing, exporting or using cryptographic software. You\\nagree that you will not export or re-export the Product to any country,\\nperson, or entity subject to U.S. export restrictions. Specifically,\\nyou agree not to export or re-export the Product: (a) to any country\\nto which the U.S. has embargoed or restricted the export of goods or\\nservices, or to any national of any such country, wherever located,\\nwho intends to transmit or transport the Product back to such country;\\n(b) to any person or entity who you know or have reason to know will\\nutilize the Product or portion thereof in the design, development\\nor production of nuclear, chemical or biological weapons; or (c) to\\nany person or entity who has been prohibited from participating in\\nU.S. export transactions by any federal agency of the U.S. government,\\nincluding but not limited to anyone on the U.S. Treasury Department's\\nlist of Specially Designated Nationals or the U.S. Department of\\nCommerce's Table of Denial Orders. By installing or using the Product,\\nyou represent and warrant that you are not located in, under control\\nof, or a national or resident of any such country or on any such list.\\n\\n7.   Notice to U.S. Government End Users.  The Software and\\nDocumentation qualify as \\\"commercial items,\\\" as that term is defined in\\nFederal Acquisition Regulation (\\\"FAR\\\") 48 C.F.R. 2.101, and consists\\nof \\\"commercial computer software\\\" and \\\"commercial computer software\\ndocumentation\\\" as such terms are used in FAR 12.212.  Consistent\\nwith FAR 12.212 and DoD FAR Supp. 227.7202-1 through 227.7202-4,\\nand notwithstanding any other FAR or other contractual clause to the\\ncontrary in any agreement into which this License may be incorporated,\\nyou may provide to a government end user or, if this License is direct,\\ngovernment end user will acquire, the Software and Documentation with\\nonly those rights set forth in this License. Use of either the Software\\nor Documentation or both constitutes agreement by the government that\\nthe Software and Documentation are \\\"commercial computer software\\\"\\nand \\\"commercial computer software documentation\\\" and constitutes\\nacceptance of the rights and restrictions herein.\\n\\n8.  Limited Warranty, Exclusive Remedy, and Disclaimer.\\n\\n(a)  Limited Warranty. We warrant that for a period of ninety (90)\\ndays from the date of shipment (the \\\"Warranty Period\\\"): (1) the media\\non which the Software is furnished will be free of defects in materials\\nand workmanship under normal use; and (2) the Software substantially\\nconforms to the Documentation. THE FOREGOING WARRANTIES DO NOT APPLY,\\nAND WE STRICTLY DISCLAIM ALL WARRANTIES, WITH RESPECT TO OPEN-SOURCE\\nCOMPONENTS.\\n\\n(b)  Remedy.  Your exclusive remedy under this limited warranty is\\nthat during the Warranty Period at no cost to you, we, at our option,\\nwill replace defective media or Documentation or, at our option,\\nundertake reasonable efforts to modify or replace the Software to\\ncorrect any substantial non- conformance with the Documentation.\\n\\n(c)  Restrictions.  The foregoing limited warranties extend only to\\nthe original licensee, and do not apply if the Software:\\n\\n(1) has been altered, except by us or a representative designated by\\nus or in accordance with our instructions;\\n\\n(2)  has not been installed, operated, repaired, or maintained in\\naccordance with our instructions;\\n\\n(3) has been subjected to abnormal physical or electrical stress,\\nmisuse, negligence or accident; or\\n\\n(4) has been operated outside of the environmental specifications\\nfor the Software.\\n\\nOur limited software warranty applies only to the initial sale of\\nthe Product, and is not applicable to any corrections or upgrades\\nthat may be issued thereafter.\\n\\n(d)  Disclaimer. EXCEPT FOR THE WARRANTIES SPECIFICALLY DESCRIBED\\nIN SECTION 8(a) ABOVE, WE AND OUR LICENSORS DISCLAIM ANY AND ALL\\nWARRANTIES AND GUARANTEES, EXPRESS, IMPLIED OR OTHERWISE, ARISING,\\nWITH RESPECT TO THE SOFTWARE, PRODUCTS, DATA, SPECIFICATIONS, OR\\nDOCUMENTATION DELIVERED HEREUNDER, INCLUDING BUT NOT LIMITED TO THE\\nWARRANTY OF MERCHANTABILITY, WARRANTY OF NON-INFRINGEMENT OR TITLE\\nAND THE WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE\\nIS PROVIDED \\\"AS IS\\\". IN NO EVENT DO WE WARRANT THAT THE SOFTWARE IS\\nERROR FREE, THAT IT WILL OPERATE WITH ANY SOFTWARE OR HARDWARE OTHER\\nTHAN THAT PROVIDED BY US OR SPECIFIED IN THE DOCUMENTATION, OR THAT\\nTHE SOFTWARE WILL SATISFY YOUR OWN SPECIFIC REQUIREMENTS. WE MAKE\\nNO WARRANTY CONCERNING THE COMPLETENESS OR ACCURACY OF THE DATA OR\\nINFORMATION OBTAINED OR DERIVED THROUGH THE USE OF THE DATA INCLUDED IN\\nTHE SOFTWARE AND THE DATA IS PROVIDED \\\"AS IS\\\".\\tWE HAVE NOT AUTHORIZED\\nANYONE TO MAKE ANY REPRESENTATIONS OR WARRANTIES OTHER THAN AS PROVIDED\\nABOVE OR TO OTHERWISE MODIFY THE TERMS OF THIS LICENSE.\\n\\n9.  Infringement Indemnity.\\n\\n(a) Infringement Defense. We will, at our expense, defend any suit\\nbrought against you by an unaffiliated third party based upon a\\nclaim that the Software infringes a valid patent, trademark or\\ncopyright or misappropriates a third-party trade secret. The terms\\n\\\"misappropriation\\\" and \\\"trade secret\\\" are used as defined in the\\nUniform Trade Secrets Act, except in case of claims arising under any\\nclaim governed by the laws of any jurisdiction outside the United\\nStates, in which case \\\"misappropriation\\\" will mean intentionally\\nunlawful use and \\\"trade secret\\\" will mean \\\"undisclosed information\\\" as\\nspecified in Article 39.2 of the Trade-Related Aspects of Intellectual\\nProperty Rights (TRIPS) agreement. We will pay costs and damages\\n(including reasonable attorneys\\\" fees) finally awarded against you,\\nor agreed in settlement by us, directly attributable to any such\\nclaim and will bear all reasonable costs of the investigation and\\ndefense of the claim, but only on condition that (1) you notify us\\nin writing of such claim promptly following receipt of notice, (2)\\nwe have sole control of the defense and settlement negotiations,\\n(3) you provide us all information and communications received by\\nyou concerning such claim, and (4) you provide reasonable assistance\\nto us when requested. You will have the right to participate in the\\ndefense with counsel of your own choosing at your expense; provided\\nthat such representation does not interfere with our right to control\\nthe defense.\\n\\n(b)  Exclusive Liability. We will have the right, at our option\\nand expense, to (1) obtain for you rights to use the Software, (2)\\nreplace or modify the Software so that it becomes non-infringing\\nor (3) accept return of the Software, upon which the applicable\\nlicense(s) will terminate, in exchange for a credit not to exceed\\nthe purchase price paid by you for such Software based upon a three\\n(3) year straight line depreciation. The foregoing, subject to the\\nrestrictions set forth in Section 10 below, states our exclusive\\nliability to you concerning infringement.\\n\\n(c)  Restrictions.  We will have no liability for any claim of\\ninfringement based on (1) use of a superseded release of the Software\\nwhere the subsequent release is equally available to you at no cost\\nand is non-infringing; (2) use of the Software in combination with\\nequipment or software not supplied by us (including Open Source\\nComponents) where the Software would not itself be infringing; (3)\\nuse of the Software in an application or environment not described in\\nthe Documentation; (4) software or technology not developed by us;\\n(5) Software that has been altered or modified in any way by anyone\\nother than us or our authorized agents; (6) your continued use of the\\nSoftware after we notify you to discontinue use due to such a claim;\\nor (7) any other use of the Software in violation of the terms of\\nthis Agreement.\\n\\n10.  DISCLAIMER; LIMITATION OF REMEDY.\\t  WE AND OUR LICENSORS WILL\\nNOT HAVE ANY OBLIGATION OR LIABILITY, WHETHER ARISING IN CONTRACT\\n(INCLUDING WARRANTY), TORT (INCLUDING ACTIVE, PASSIVE OR IMPUTED\\nNEGLIGENCE, STRICT LIABILITY OR PRODUCT LIABILITY) OR OTHERWISE FOR ANY\\nPUNITIVE, EXEMPLARY, SPECIAL, INCIDENTAL, CONSEQUENTIAL OR INDIRECT\\nDAMAGES, INCLUDING BUT NOT LIMITED TO LOSS OF USE, LOSS OF DATA,\\nLOSS OF REPUTATION, BUSINESS INTERRUPTION, LOSS OF REVENUE, LOSS OF\\nBUSINESS, LOST PROFITS, OR OTHER FINANCIAL LOSS ARISING OUT OF OR IN\\nCONNECTION WITH THE SOFTWARE OR OTHER GOODS OR SERVICES FURNISHED TO\\nYOU BY US, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.\\tTO THE\\nEXTENT PERMITTED BY LAW, OUR LICENSORS WILL NOT HAVE ANY LIABILITY\\nFOR ANY DIRECT DAMAGES OF ANY KIND UNDER THIS LICENSE. SUBJECT TO\\nTHE FOREGOING, THE COLLECTIVE LIABILITY OF US AND OUR LICENSORS (a)\\nFOR PERPETUAL LICENSED SOFTWARE  LICENSED UNDER THIS LICENSE WILL BE\\nLIMITED TO THE AMOUNT PAID FOR THE SOFTWARE AND (b)  FOR SOFTWARE OTHER\\nTHAN PERPETUAL LICENSED SOFTWARE WILL BE LIMITED TO THE AMOUNT PAID FOR\\nTHE SOFTWARE IN THE TWELVE (12) MONTHS PRIOR TO THE EVENT GIVING RISE\\nTO THE CLAIM.\\t THE LIMITATIONS CONTAINED IN THIS SECTION WILL APPLY\\nNOTWITHSTANDING ANY FAILURE OF AN ESSENTIAL PURPOSE OF ANY LIMITED\\nREMEDY PROVIDED UNDER ANY TERM OF THIS LICENSE.  SOME JURISDICTIONS\\nDO NOT ALLOW THE LIMITATION OR EXCLUSION OF LIABILITY FOR INCIDENTAL\\nOR CONSEQUENTIAL DAMAGES. IN THOSE JURISDICTIONS, SUCH INAPPLICABILITY\\nWILL NOT AFFECT THE REMAINDER OF THE PROVISIONS IN THIS SECTION.\\n\\n11.  Termination.  The license granted in Section 1 will automatically\\nterminate if you fail to comply with any of the terms and conditions\\nset forth herein.  Upon termination or expiration of the license,\\nyou will stop all instances running in your private network and\\ndestroy any copies of the Software and Documentation in such network\\n(and all copies or portions thereof) and stop all instances of the\\nSoftware running in a Cloud Provider environment.\\n\\n12.  Support.  Maintenance and support under this License is dependent\\nupon the type of software licensed hereunder, as further described\\nin this Section 12:\\n\\n(a) Support for Nginx Software. During the Term, we will\\nprovide maintenance and support for all Nginx Software. Our\\nmaintenance and support obligations for the Nginx Software\\nshall be subject to the support policies available at\\nhttp://nginx.com/legal/support-services-addendum/.\\n\\n(b) Support for F5 Software. Unless otherwise provided as\\npart of the Sales Documentation, maintenance and support of\\nall F5 Software is not provided under this License and must be\\npurchased separately subject to our support policies available at\\nhttps://www.f5.com/services/support/support-offerings/support-policies.\\nIf you have purchased maintenance and support for a Product, the\\nterm Software under this License will include, subject to Section\\n4(b), all updates and corrections we make publicly available at\\nno additional cost (collectively \\\"Updates\\\"); provided that you are\\notherwise entitled to access and use such Updates pursuant to the\\napplicable maintenance and support contract.  You may only use the\\nUpdates on Products for which you are the original end user or other\\nProducts which include F5 Software to which you hold a valid license,\\nand only on equipment for which you have purchased maintenance and\\nsupport. Permissible upgrades for virtual edition licenses are further\\ndescribed at https://support.f5.com/csp/article/K15643.\\n\\n(c) Professional Services. Professional and consulting services are\\nnot included as part of maintenance and support and are provided\\nunder a separate agreement or statement of work.\\n\\n13.  General\\n\\n(a)  Governing Law and Dispute Resolution.\\n\\n(1) This License shall be governed by and construed in accordance\\nwith the governing law (\\\"Governing Law\\\"), set forth in the list\\nbelow corresponding to the applicable licensing F5 entity, without\\nregard to its choice of law rules. The United Nations Convention\\non Contracts for the International Sale of Goods and the Uniform\\nComputer Information Transactions Act, in whatever form adopted,\\nwill not apply to this License, is expressly and entirely excluded,\\nand the parties specifically opt out of the application of such laws.\\n\\nEntity: F5 Networks Singapore Pte Ltd; Governing Law: The laws of\\nSingapore; Seat of Arbitration: Singapore \\n\\nEntity: F5 Networks Ltd.; Governing Law: The laws of England and \\nWales; Seat of Arbitration: London, England\\n\\nEntity: F5 Networks, Inc.; Governing Law: The laws of the State of \\nWashington; Seat of Arbitration: Seattle, Washington\\n\\n(2)  Except for Excluded Claims (defined below), all disputes arising\\nout of or in connection with this License, including any question\\nregarding its formation, existence, validity or termination,\\nshall be finally settled under the Rules of Arbitration of the\\nInternational Chamber of Commerce by one or more arbitrators appointed\\nin accordance with the said Rules.  Any dispute concerning the scope or\\napplicability of this agreement to arbitrate shall be finally settled\\nby the arbitrator(s). The seat, or legal place, of arbitration shall\\nbe as set forth in the table above corresponding to the applicable\\nlicensing F5 entity.  The language of the arbitration shall be English.\\nThe arbitration award shall be final and binding on the parties, and\\nthe parties undertake to carry out any award without delay. Judgment\\nupon the award rendered by the arbitrator(s) may be entered in any\\ncourt having jurisdiction thereof.  The arbitrator(s) shall award\\nto the prevailing party, if any, as determined by the arbitrator(s),\\nall of its reasonable costs and fees.\\n\\n(3) \\\"Excluded Claims\\\" means any dispute, claim or action concerning the\\nvalidity, enforceability, infringement, misappropriation or violation\\nof our intellectual property rights or those of our licensors and\\nall such Excluded Claims shall be brought in any court of competent\\njurisdiction.\\n\\n(b)  Notice. Notices under this License shall be sufficient only if in\\nwriting and personally delivered, delivered by a major commercial rapid\\ndelivery courier service or mailed by certified or registered mail,\\nreturn receipt requested. Notices to you shall be addressed to the\\naddress listed in the applicable purchase order or quote. Notices to F5\\nshall be addressed to the addresses set forth opposite the applicable\\nF5 entity below, or as amended by notice pursuant to this subsection.\\n\\nF5 entity: Address for Notices: With a copy to: F5 Networks Singapore\\nPte. Ltd.  F5 Networks Singapore Pte. Ltd.  Attn: Legal Dept.\\n5 Temasek Boulevard 08-01/02/05 Suntec Tower 5 Singapore 038985\\nSingapore\\n\\nF5 Networks, Inc.  Attn: Legal Dept.  801 5th Ave.  Seattle, WA 98104\\nUSA F5 Networks Ltd.  F5 Networks, Ltd.  Attn: Legal Dept.  Chertsey\\nGate West 43-47 London Street Chertsey Surrey KT16 8AP United Kingdom\\n\\nF5 Networks, Inc.  Attn: Legal Dept.  801 5th Ave.  Seattle, WA\\n98104 USA F5 Networks, Inc.  F5 Networks, Inc.\\tAttn: Legal Dept.\\n801 5th Ave.  Seattle, WA 98104 USA\\n\\n(c)  Miscellaneous. If either party is unable to perform any of its\\nobligations under this License, other than payment obligations, due\\nto any cause beyond the reasonable control of such party, the affected\\nparty\\\"s performance shall be extended for the period of its inability\\nto perform due to such occurrence. This License and the rights and\\nobligations herein may not be assigned or transferred, in whole or in\\npart, by you without the prior written consent of F5.  Any assignment\\nin violation of this provision is void and without effect.  In the\\ncase of any permitted assignment or transfer under this License, this\\nLicense or the relevant provisions shall be binding upon, and inure to\\nthe benefit of, the successors and permitted assigns of the parties. No\\nprovision of, right or privilege under this License shall be deemed\\nto have been waived by any act, delay, omission or acquiescence on the\\npart of any party, its agents or employees, but only by an instrument\\nin writing duly executed by both parties.  No waiver by any party of\\nany breach or default of any provision of this License by the other\\nparty shall be effective as to any other breach or default, whether\\nof the same or any other provision and whether occurring prior to,\\nconcurrent with, or subsequent to the date of such waiver.\\n\\nHeadings and captions used in this License are for convenience only\\nand are not to be used in the interpretation of this License. If\\nany provision of this License is held to be invalid, illegal or\\nunenforceable in any respect, that provision shall be limited or\\neliminated to the minimum extent necessary so that this License\\notherwise remains in full force and effect and enforceable. This\\nLicense together with the applicable Sales Documentation and all other\\ndocuments that are incorporated by reference herein, constitute the\\nentire agreement between the parties relating to the subject matter\\nhereof and supersede all proposals, understandings, or discussions,\\nwhether written or oral, relating to the subject matter of this\\nLicense and all past dealing or industry custom.\"\r\n}"
+				},
+				"url": {
+					"raw": "https://{{BIGIQ_MGMT}}/mgmt/cm/device/licensing/pool/regkey/licenses/{{POOL_ID}}/offerings/{{REGKEY}}",
+					"protocol": "https",
+					"host": [
+						"{{BIGIQ_MGMT}}"
+					],
+					"path": [
+						"mgmt",
+						"cm",
+						"device",
+						"licensing",
+						"pool",
+						"regkey",
+						"licenses",
+						"{{POOL_ID}}",
+						"offerings",
+						"{{REGKEY}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Assign Device to Pool",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();\r",
+							"\r",
+							"pm.environment.set(\"TASK_ID\", jsonData.id)\r",
+							"\r",
+							"\r",
+							"pm.test(\"TASK ID retrieved\", function () {\r",
+							"pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-F5-Auth-Token",
+						"value": "{{Token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"licensePoolName\": \"{{POOL_NAME}}\",\r\n  \"command\": \"assign\",\r\n  \"address\": \"{{BIGIP_ADDRESS}}\",\r\n  \"assignmentType\": \"UNREACHABLE\",\r\n  \"macAddress\": \"{{BIGIP_MAC}}\",\r\n  \"hypervisor\": \"{{HYPERVISOR}}\"\r\n}"
+				},
+				"url": {
+					"raw": "https://{{BIGIQ_MGMT}}/mgmt/cm/device/tasks/licensing/pool/member-management",
+					"protocol": "https",
+					"host": [
+						"{{BIGIQ_MGMT}}"
+					],
+					"path": [
+						"mgmt",
+						"cm",
+						"device",
+						"tasks",
+						"licensing",
+						"pool",
+						"member-management"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve License",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();\r",
+							"\r",
+							"pm.environment.set(\"LICENSE\", jsonData.licenseText)\r",
+							"\r",
+							"\r",
+							"pm.test(\"License retrieved\", function () {\r",
+							"pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-F5-Auth-Token",
+						"value": "{{Token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://{{BIGIQ_MGMT}}/mgmt/cm/device/tasks/licensing/pool/member-management/{{TASK_ID}}",
+					"protocol": "https",
+					"host": [
+						"{{BIGIQ_MGMT}}"
+					],
+					"path": [
+						"mgmt",
+						"cm",
+						"device",
+						"tasks",
+						"licensing",
+						"pool",
+						"member-management",
+						"{{TASK_ID}}"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

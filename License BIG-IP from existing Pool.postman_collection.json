@@ -1,0 +1,189 @@
+{
+	"info": {
+		"_postman_id": "1cb5d5de-1217-4708-a1f3-d7b647c02ea7",
+		"name": "License BIG-IP from existing Pool",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Token Request",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();\r",
+							"\r",
+							"pm.environment.set(\"Token\", jsonData.token.token)\r",
+							"\r",
+							"\r",
+							"pm.test(\"Token retrieved\", function () {\r",
+							"pm.response.to.have.status(200);\r",
+							"});\r",
+							"            \r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "admin.F5demo.com",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "admin",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"username\":\"{{USERNAME}}\",\r\n  \"password\":\"{{PASSWORD}}\"\r\n}"
+				},
+				"url": {
+					"raw": "https://{{BIGIQ_MGMT}}/mgmt/shared/authn/login",
+					"protocol": "https",
+					"host": [
+						"{{BIGIQ_MGMT}}"
+					],
+					"path": [
+						"mgmt",
+						"shared",
+						"authn",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Assign Device to Pool",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();\r",
+							"\r",
+							"pm.environment.set(\"TASK_ID\", jsonData.id)\r",
+							"\r",
+							"\r",
+							"pm.test(\"TASK ID retrieved\", function () {\r",
+							"pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-F5-Auth-Token",
+						"value": "{{Token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"licensePoolName\": \"{{POOL_NAME}}\",\r\n  \"command\": \"assign\",\r\n  \"address\": \"{{BIGIP_ADDRESS}}\",\r\n  \"assignmentType\": \"UNREACHABLE\",\r\n  \"macAddress\": \"{{BIGIP_MAC}}\",\r\n  \"hypervisor\": \"{{HYPERVISOR}}\"\r\n}"
+				},
+				"url": {
+					"raw": "https://{{BIGIQ_MGMT}}/mgmt/cm/device/tasks/licensing/pool/member-management",
+					"protocol": "https",
+					"host": [
+						"{{BIGIQ_MGMT}}"
+					],
+					"path": [
+						"mgmt",
+						"cm",
+						"device",
+						"tasks",
+						"licensing",
+						"pool",
+						"member-management"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve License",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();\r",
+							"\r",
+							"pm.environment.set(\"LICENSE\", jsonData.licenseText)\r",
+							"\r",
+							"\r",
+							"pm.test(\"LICENSE retrieved\", function () {\r",
+							"pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-F5-Auth-Token",
+						"value": "{{Token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://{{BIGIQ_MGMT}}/mgmt/cm/device/tasks/licensing/pool/member-management/{{TASK_ID}}",
+					"protocol": "https",
+					"host": [
+						"{{BIGIQ_MGMT}}"
+					],
+					"path": [
+						"mgmt",
+						"cm",
+						"device",
+						"tasks",
+						"licensing",
+						"pool",
+						"member-management",
+						"{{TASK_ID}}"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
